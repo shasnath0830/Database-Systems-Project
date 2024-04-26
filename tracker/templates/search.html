@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Database</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif; /* Sets a clean, modern font */
+            background-color: #f4f4f4; /* Light grey background */
+            margin: 20px; /* Adds margin around the body */
+        }
+        h1 {
+            color: #333; /* Dark grey color for the heading */
+        }
+        form {
+            background-color: #fff; /* White background for the form */
+            padding: 20px; /* Padding inside the form */
+            border-radius: 8px; /* Rounded corners for the form */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Subtle shadow around the form */
+        }
+        label {
+            display: block; /* Makes the label display on its own line */
+            margin-bottom: 5px; /* Adds space below the label */
+            color: #666; /* Medium grey color for the text */
+        }
+        textarea {
+            width: 100%; /* Makes the textarea span the full width of the form */
+            border: 1px solid #ccc; /* Light grey border */
+            border-radius: 4px; /* Rounded corners */
+            padding: 8px; /* Padding inside the textarea */
+            box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+        }
+        input[type="submit"] {
+            background-color: #5c67f2; /* Blue background for the button */
+            color: white; /* White text color */
+            border: none; /* No border */
+            padding: 10px 20px; /* Padding inside the button */
+            text-transform: uppercase; /* Uppercase text */
+            letter-spacing: 1px; /* Adds spacing between letters */
+            border-radius: 4px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background-color 0.3s; /* Smooth transition for the background color */
+        }
+        input[type="submit"]:hover {
+            background-color: #4a4fe8; /* Slightly darker blue on hover */
+        }
+        a {
+            color: #5c67f2; /* Styles the link with the same blue color */
+            text-decoration: none; /* Removes underline from the link */
+        }
+        a:hover {
+            text-decoration: underline; /* Underlines the link on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Database</h1>
+    <form method="post" action="{% url 'search_database' %}">
+        {% csrf_token %}
+        <label for="query">SQL Query:</label><br>
+        <textarea id="query" name="query" rows="5" cols="50"></textarea><br>
+        <input type="submit" value="Execute">
+    </form>
+    <h2>Instructions:</h2>
+    <ul>
+        <li>To search for records, use: SELECT <column_name(s)> FROM <table_name></li>
+        <li>To update records, use: UPDATE <table_name> SET <column1>=<value1> [WHERE <condition>]</li>
+        <li>To delete records, use: DELETE FROM <table_name> [WHERE <condition>]</li>
+    </ul>
+    <p><a href="{% url 'admin_dashboard' %}">Return to Admin Dashboard</a></p>
+</body>
+</html>

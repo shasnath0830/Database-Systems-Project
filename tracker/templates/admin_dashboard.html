@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipment Tracker - Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 200px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 5px 5px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        a {
+            color: #333;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 200px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 5px 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        a {
+            color: #333;
+            text-decoration: none; /* Remove underline from links */
+        }
+        .navbar {
+            overflow: hidden;
+            background-color: #333;
+            display: flex; /* Make navbar items flexbox */
+            justify-content: space-between; /* Space items evenly */
+            padding: 10px 20px; /* Add padding to navbar */
+        }
+        .navbar a {
+            color: #f2f2f2;
+            text-align: center;
+            text-decoration: none;
+            padding: 14px 20px;
+            margin: 0 10px; /* Add margin to space items */
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .active {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+
+<div class="navbar">
+    <a id="packagesLink" href="#" onclick="showView('packages')" {% if active_view != 'showdb' %}class="active"{% endif %}>View Packages</a>
+    <a id="shipmentsLink" href="#" onclick="showView('shipments')">View Shipments</a>
+    <a id="driversLink" href="#" onclick="showView('drivers')">View Drivers</a>
+    <a id="vehiclesLink" href="#" onclick="showView('vehicles')">View Vehicles</a>
+     <a id="advancedLink" href="{% url 'advanced_feature' %}">Advanced Feature</a>
+    <a id="searchLink" href="#" onclick="showView('showdb')" {% if active_view == 'showdb' %}class="active"{% endif %}>Search Database</a>
+    <a id="logoutLink" href="{% url 'logout' %}" class="logout">Logout</a>
+</div>
+
+    <div id="packages">
+    <h1>Package Management</h1>
+    <form method="post" action="{% url 'assign_package' %}">
+        {% csrf_token %}
+        <label for="packageId">Packages:</label>
+           <select id="packageId" name="packageId" required multiple>
+       {% for package in packages %}
+           {% if not package.assigned_to_shipment %}
+               <option value="{{ package.id }}">{{ package.description }}</option>
+           {% endif %}
+       {% endfor %}
+   </select><br>
+        {% for package in packages %}
+            <input type="hidden" name="packagePrice_{{ package.id }}" value="{{ package.price|default_if_none:"" }}">
+        {% endfor %}
+        <label for="shipmentId">Shipment:</label>
+        <select id="shipmentId" name="shipmentId">
+            <option value="">Create New Shipment</option>
+            {% for shipment in shipments %}
+                <option value="{{ shipment.id }}">{{ shipment.order_number }}</option>
+            {% endfor %}
+        </select><br>
+        <input type="submit" value="Assign Packages">
+    </form>
+
+    <h2>View Packages</h2>
+    <table>
+        <tr>
+            <th>Package ID</th>
+            <th>Description</th>
+            <th>Weight</th>
+            <th>Dimensions</th>
+            <th>Status</th>
+            <th>Price</th>
+            <th>Assigned</th>
+        </tr>
+        {% for package in packages %}
+        <tr>
+            <td>{{ package.id }}</td>
+            <td>{{ package.description }}</td>
+            <td>{{ package.weight }}</td>
+            <td>{{ package.dimensions }}</td>
+            <td>{{ package.status }}</td>
+            <td>${{ package.price|default:"N/A" }}</td>
+            <td>
+                {% if package.assigned_to_shipment %}
+                <input type="checkbox" disabled checked="checked">
+                {% else %}
+                <input type="checkbox" disabled>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+    <div id="shipments">
+        <h1>Shipment Management</h1>
+        <h2>Assign Shipment to Vehicle</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign_shipment">
+            <label for="shipmentId">Shipment:</label>
+            <select id="shipmentId" name="shipmentId" required>
+                {% for shipment in shipments %}
+                    <option value="{{ shipment.id }}">{{ shipment.order_number }}</option>
+                {% endfor %}
+            </select><br>
+            <label for="vehicleId">Vehicle:</label>
+            <select id="vehicleId" name="vehicleId" required>
+                {% for vehicle in vehicles %}
+                    <option value="{{ vehicle.id }}" {% if vehicle.status != 'Available' %} disabled {% endif %}>
+                        {{ vehicle.model }} - {{ vehicle.plate }}
+                        {% if vehicle.status != 'Available' %} (Assigned) {% endif %}
+                    </option>
+                {% endfor %}
+            </select><br>
+           
+            <input type="submit" value="Assign vehicle">
+        </form>
+ 
+        <h2>View Shipments</h2>
+        <table>
+            <tr>
+                <th>Shipment ID</th>
+                <th>Order Number</th>
+                <th>Order Date</th>
+                <th>Vehicle</th>
+                <th>Shipment Date</th>
+                <th>Total Cost</th>
+                <th>Delivery Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for shipment in shipments %}
+                <tr>
+                    <td>{{ shipment.id }}</td>
+                    <td>{{ shipment.order_number }}</td>
+                    <td>{{ shipment.order_date }}</td>
+                    <td>{% if shipment.vehicle %}{{ shipment.vehicle.model }} - {{ shipment.vehicle.plate }}{% else %}N/A{% endif %}</td>
+                    <td>{{ shipment.shipment_date }}</td>
+                    <td>${{ shipment.total_cost }}</td>
+                    <td>{{ shipment.delivery_date|default_if_none:"N/A" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'update_shipment_status' shipment.id %}">
+                            {% csrf_token %}
+                            <select name="status" onchange="this.form.submit()">
+                                <option value="Pending" {% if shipment.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="In Transit" {% if shipment.status == 'In Transit' %}selected{% endif %}>In Transit</option>
+                                <option value="Delivered" {% if shipment.status == 'Delivered' %}selected{% endif %} {% if shipment.status != 'In Transit' %}disabled{% endif %}>Delivered</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'update_shipment' shipment.id %}">Edit</a><br><br>
+                        <form method="post" action="{% url 'delete_shipment' shipment.id %}">
+                            {% csrf_token %}
+                            <input type="submit" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+<div id="drivers">
+        <h1>Driver Management</h1>
+        <h2>Create Driver</h2>
+        <form method="post" action="{% url 'create_driver' %}">
+            {% csrf_token %}
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br>
+            <label for="vehicleId">Vehicle:</label>
+            <select id="vehicleId" name="vehicleId" required>
+                {% for vehicle in vehicles %}
+                    <option value="{{ vehicle.id }}">{{ vehicle.model }} - {{ vehicle.plate }}</option>
+                {% endfor %}
+            </select><br>
+            <input type="submit" value="Create Driver">
+        </form>
+        <h2>Assign Driver to Vehicle</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign_driver">
+            
+            <label for="driverId">ID For Driver:</label>
+            <select id="driverId" name="driverId" required>
+                {% for driver in drivers %}
+                    <option value="{{ driver.id }}">{{ driver.name }}</option>
+                {% endfor %}
+            </select><br>
+            <label for="vehicleId">Vehicle:</label>
+            <select id="vehicleId" name="vehicleId" required>
+                {% for vehicle in vehicles %}
+                    <option value="{{ vehicle.id }}">{{ vehicle.model }} - {{ vehicle.plate }}</option>
+                {% endfor %}
+            </select><br>
+            <input type="submit" value="Assign Driver">
+        </form>
+        <h2>View Drivers</h2>
+        <table>
+            <tr>
+                <th>Driver ID</th>
+                <th>Name</th>
+                <th>Vehicle</th>
+                <th>Action</th>
+            </tr>
+            {% for driver in drivers %}
+                <tr>
+                    <td>{{ driver.id }}</td>
+                    <td>{{ driver.name }}</td>
+                    <td>{{ driver.vehicle.model }} - {{ driver.vehicle.plate }}</td>
+                    <td>
+                        <a href="{% url 'update_driver' driver.id %}">Edit</a><br><br>
+                        <form method="post" action="{% url 'delete_driver' driver.id %}">
+                            {% csrf_token %}
+                            <input type="submit" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div id="vehicles">
+        <h1>Vehicle Management</h1>
+        <h2>Create Vehicle</h2>
+        <form method="post" action="{% url 'create_vehicle' %}">
+            {% csrf_token %}
+            <label for="model">Model:</label>
+            <input type="text" id="model" name="model" required><br>
+            <label for="plate">Plate:</label>
+            <input type="text" id="plate" name="plate" required><br>
+            <label for="status">Status:</label>
+            <input type="text" id="status" name="status" required><br>
+            <input type="submit" value="Create Vehicle">
+        </form>
+        <h2>View Vehicles</h2>
+        <table>
+            <tr>
+                <th>Vehicle ID</th>
+                <th>Model</th>
+                <th>Plate</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            {% for vehicle in vehicles %}
+                <tr>
+                    <td>{{ vehicle.id }}</td>
+                    <td>{{ vehicle.model }}</td>
+                    <td>{{ vehicle.plate }}</td>
+                    <td>{{ vehicle.status }}</td>
+                    <td>
+                        <a href="{% url 'update_vehicle' vehicle.id %}">Edit</a><br><br>
+                        <form method="post" action="{% url 'delete_vehicle' vehicle.id %}">
+                            {% csrf_token %}
+                            <input type="submit" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+<div id="showdb" style="display:none;">
+        <style>
+            body {
+                font-family: Arial, sans-serif; /* Sets a clean, modern font */
+                background-color: #f4f4f4; /* Light grey background */
+                margin: 20px; /* Adds margin around the body */
+            }
+            h1 {
+                color: #333; /* Dark grey color for the heading */
+            }
+        
+            label {
+                display: block; /* Makes the label display on its own line */
+                margin-bottom: 5px; /* Adds space below the label */
+                color: #666; /* Medium grey color for the text */
+            }
+            textarea {
+                width: 100%; /* Makes the textarea span the full width of the form */
+                border: 1px solid #ccc; /* Light grey border */
+                border-radius: 4px; /* Rounded corners */
+                padding: 8px; /* Padding inside the textarea */
+                box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+            }
+            input[type="submit"] {
+                background-color: #222000; /* Black background for the button */
+                border: none; /* No border */
+                padding: 10px 10px; /* Padding inside the button */
+                text-transform: uppercase; /* Uppercase text */
+                letter-spacing: 1px; /* Adds spacing between letters */
+                border-radius: 4px; /* Rounded corners */
+                cursor: pointer; /* Pointer cursor on hover */
+                transition: background-color 0.3s; /* Smooth transition for the background color */
+            }
+            input[type="submit"]:hover {
+                background-color: #333333; /* Slightly lighter black on hover */
+            }
+            a {
+                color: #5c67f2; /* Styles the link with the same blue color */
+                text-decoration: none; /* Removes underline from the link */
+            }
+            a:hover {
+                text-decoration: underline; /* Underlines the link on hover */
+            }
+        </style>
+    
+        <h1>Search Database</h1>
+        <form method="post" action="{% url 'search_database' %}">
+            {% csrf_token %}
+            <label for="query">SQL Query:</label><br>
+            <textarea id="query" name="query" rows="5" cols="50"></textarea><br><br>
+            <input type="submit" value="Execute">
+        </form>
+        <h2>Instructions:</h2>
+        <ul>
+            <li>To search for records, use: SELECT <column_name(s)> FROM <table_name></li>
+            <li>To update records, use: UPDATE <table_name> SET <column1>=<value1> [WHERE <condition>]</li>
+            <li>To delete records, use: DELETE FROM <table_name> [WHERE <condition>]</li>
+        </ul>
+    
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 20px;
+            }
+            h1 {
+                color: #333;
+            }
+            p {
+                color: #666;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 20px; /* Adds a margin above the table */
+            }
+            th, td {
+                border: 1px solid #ccc; /* Lighter border for a softer look */
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .button {
+                background-color: #; /* Black background color */
+                color: white;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.3s; /* Smooth transition for hover effect */
+            }
+            .button:hover {
+                background-color: #333333; /* Slightly lighter black on hover */
+            }
+            a {
+                color: #000000; /* Changed link color to black to eliminate purple */
+                text-decoration: none; /* No underline by default */
+            }
+            a:hover {
+                text-decoration: underline; /* Underline on hover */
+            }
+        </style>   
+    
+        {% if query %}
+            <h2>Query Result</h2>
+            <p>Query: {{ query }}</p>
+    
+            {% if success_message %}
+                <p style="color: green;">{{ success_message }}</p>
+            {% endif %}
+    
+            {% if error %}
+                <p>Error: {{ error }}</p>
+            {% else %}
+                {% if result %}
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for key in result.0.keys %}
+                                    <th>{{ key }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in result %}
+                                <tr>
+                                    {% for value in row.values %}
+                                        <td>{{ value }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No results found.</p>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+
+<div id="AdvancedFeature">
+    <h1>Advanced Feature</h1>
+
+    <h2>Package Status Distribution</h2>
+    <img src="data:image/png;base64,{{ plots.0 }}" alt="Package Status Distribution">
+    <h3>Statistics</h3>
+    <pre>{{ status_stats }}</pre>
+
+    <h2>Shipment Trend Analysis</h2>
+    <img src="data:image/png;base64,{{ plots.1 }}" alt="Shipment Trend Analysis">
+
+    <h2>Package Weight Distribution</h2>
+    <img src="data:image/png;base64,{{ plots.2 }}" alt="Package Weight Distribution">
+    <h3>Statistics</h3>
+    <pre>{{ weight_stats }}</pre>
+
+    <h2>Delivery Time Analysis</h2>
+    <img src="data:image/png;base64,{{ plots.3 }}" alt="Delivery Time Analysis">
+    <h3>Statistics</h3>
+    <pre>{{ delivery_time_stats }}</pre>
+</div>
+
+	<script>
+		function showView(viewName) {
+			var views = [ 'packages', 'shipments', 'drivers', 'vehicles',
+					'AdvancedFeature', 'showdb' ];
+			views.forEach(function(view) {
+				var element = document.getElementById(view);
+				if (view === viewName) {
+					element.style.display = 'block';
+				} else {
+					element.style.display = 'none';
+				}
+			});
+
+			// Update active state of navbar links
+			var links = document.querySelectorAll('.navbar a');
+			links.forEach(function(link) {
+				if (link.getAttribute('id') === viewName + 'Link') {
+					link.classList.add('active');
+				} else {
+					link.classList.remove('active');
+				}
+			});
+
+			// Save active view to local storage
+			localStorage.setItem('activeView', viewName);
+		}
+
+		// Restore active view from local storage
+		var activeView = localStorage.getItem('activeView');
+		if (activeView) {
+			showView(activeView);
+		} else {
+			// Set the default view to 'packages' if no active view is stored
+			showView('packages');
+		}
+
+		// Add event listener to the form submission
+		document
+				.getElementById('searchForm')
+				.addEventListener(
+						'submit',
+						function(event) {
+							event.preventDefault(); // Prevent form submission
+
+							// Send AJAX request to the server
+							var xhr = new XMLHttpRequest();
+							xhr.onreadystatechange = function() {
+								if (xhr.readyState === XMLHttpRequest.DONE) {
+									if (xhr.status === 200) {
+										// Update the content of the "showdb" div with the response
+										document.getElementById('showdb').innerHTML = xhr.responseText;
+									} else {
+										console.error('Error:', xhr.status);
+									}
+								}
+							};
+							xhr.open('POST', '{% url "search_database" %}');
+							xhr.setRequestHeader('Content-Type',
+									'application/x-www-form-urlencoded');
+							xhr.setRequestHeader('X-CSRFToken',
+									'{{ csrf_token }}');
+							var formData = 'query='
+									+ encodeURIComponent(document
+											.getElementById('query').value);
+							xhr.send(formData);
+						});
+	</script>
+</body>
+</html>

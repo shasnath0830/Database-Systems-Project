@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipment Tracker - Update Shipment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 300px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 5px 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Update Shipment</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="orderNumber">Order Number:</label>
+        <input type="text" id="orderNumber" name="orderNumber" value="{{ shipment.order_number }}" required><br>
+        <label for="customerId">Customer:</label>
+        <select id="customerId" name="customerId">
+            <option value="">Select a customer</option>
+            {% for customer in customers %}
+                <option value="{{ customer.id }}" {% if customer.id == shipment.customer.id %}selected{% endif %}>
+                    {{ customer.user.email }}
+                </option>
+            {% endfor %}
+        </select><br>
+        <label for="orderDate">Order Date:</label>
+        <input type="date" id="orderDate" name="orderDate" value="{{ shipment.order_date|date:'Y-m-d' }}" required><br>
+        <label for="driverId">Driver:</label>
+        <select id="driverId" name="driverId">
+            <option value="">Select a driver</option>
+            {% for driver in drivers %}
+                <option value="{{ driver.id }}" {% if driver.id == shipment.driver.id %}selected{% endif %}>
+                    {{ driver.name }}
+                </option>
+            {% endfor %}
+        </select><br>
+        <label for="shipmentDate">Shipment Date:</label>
+        <input type="date" id="shipmentDate" name="shipmentDate" value="{{ shipment.shipment_date|date:'Y-m-d' }}" required><br>
+        <label for="totalCost">Total Cost:</label>
+        <input type="number" id="totalCost" name="totalCost" step="0.01" value="{{ shipment.total_cost }}" required><br>
+        <label for="deliveryDate">Delivery Date:</label>
+        <input type="date" id="deliveryDate" name="deliveryDate" value="{{ shipment.delivery_date|date:'Y-m-d' }}" required><br>
+        <input type="submit" value="Update Shipment">
+    </form>
+</body>
+</html>

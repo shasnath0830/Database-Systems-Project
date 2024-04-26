@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipment Tracker - Update Vehicle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 5px 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Update Vehicle</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="model">Model:</label>
+        <input type="text" id="model" name="model" value="{{ vehicle.model }}" required><br>
+        <label for="plate">Plate:</label>
+        <input type="text" id="plate" name="plate" value="{{ vehicle.plate }}" required><br>
+        <label for="status">Status:</label>
+        <input type="text" id="status" name="status" value="{{ vehicle.status }}" required><br>
+        <input type="submit" value="Update Vehicle">
+    </form>
+</body>
+</html>

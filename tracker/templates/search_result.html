@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px; /* Adds a margin above the table */
+        }
+        th, td {
+            border: 1px solid #ccc; /* Lighter border for a softer look */
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .button {
+            background-color: #5c67f2; /* Matching button color with the previous form */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* Smooth transition for hover effect */
+        }
+        .button:hover {
+            background-color: #4a4fe8; /* Slightly darker blue on hover */
+        }
+        a {
+            color: #5c67f2; /* Same link color as in the previous form */
+            text-decoration: none; /* No underline by default */
+        }
+        a:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Query Result</h1>
+    <p>Query: {{ query }}</p>
+
+    {% if success_message %}
+        <p style="color: green;">{{ success_message }}</p>
+    {% endif %}
+
+    {% if error %}
+        <p>Error: {{ error }}</p>
+    {% else %}
+        {% if result %}
+            <table>
+                <thead>
+                    <tr>
+                        {% for key in result.0.keys %}
+                            <th>{{ key }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in result %}
+                        <tr>
+                            {% for value in row.values %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+    {% endif %}
+    
+    <br><p><a href="{% url 'search_database' %}" class="button">New Query</a></p><br>
+    <p><a href="{% url 'admin_dashboard' %}" class="button">Return to Admin Dashboard</a></p>
+    
+</body>
+</html>

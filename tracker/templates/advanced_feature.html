@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Feature</title>
+</head>
+<body>
+    <h1>Advanced Feature</h1>
+
+    {% for plot in plots %}
+        {% if plot %}
+            <img src="data:image/png;base64,{{ plot }}" alt="Plot">
+        {% else %}
+            <p>Plot not available</p>
+        {% endif %}
+    {% endfor %}
+</body>
+</html>
